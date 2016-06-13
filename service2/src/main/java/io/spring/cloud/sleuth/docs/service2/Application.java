@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +32,7 @@ public class Application {
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
 	@Autowired RestTemplate restTemplate;
+	@Autowired Tracer tracer;
 	@Value("${service3.address:localhost:8083}") String serviceAddress3;
 	@Value("${service4.address:localhost:8084}") String serviceAddress4;
 	private static final int MOCK_PORT = 8765;
@@ -62,9 +65,15 @@ public class Application {
 
 	@RequestMapping("/readtimeout")
 	public String connectionTimeout() throws InterruptedException {
-		log.info("Calling a missing service");
-		restTemplate.getForObject("http://localhost:" + MOCK_PORT + "/readtimeout", String.class);
-		return "Should blow up";
+		Span span = this.tracer.createSpan("second_span");
+		Thread.sleep(500);
+		try {
+			log.info("Calling a missing service");
+			restTemplate.getForObject("http://localhost:" + MOCK_PORT + "/readtimeout", String.class);
+			return "Should blow up";
+		} finally {
+			this.tracer.close(span);
+		}
 	}
 
 	@Bean
