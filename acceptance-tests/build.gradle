@@ -1,5 +1,13 @@
 apply plugin: 'groovy'
 
+bootRepackage {
+    enabled = false
+}
+
+bootRun {
+    enabled = false
+}
+
 dependencies {
     compile "org.aspectj:aspectjrt:1.8.8"
     compile "org.springframework.boot:spring-boot-starter-web:1.3.2.RELEASE"
