@@ -1,5 +1,7 @@
 package io.spring.cloud.sleuth.docs.service1;
 
+import java.lang.invoke.MethodHandles;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.invoke.MethodHandles;
-
 @SpringBootApplication
 @RestController
+@SuppressWarnings("Duplications")
 public class Application {
 
 	private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
@@ -25,8 +26,24 @@ public class Application {
 	@RequestMapping("/start")
 	public String start() throws InterruptedException {
 		log.info("Hello from service1. Calling service2");
-		String response = restTemplate.getForObject("http://" + serviceAddress + "/foo",String.class);
+		String response = restTemplate.getForObject("http://" + serviceAddress + "/foo", String.class);
 		Thread.sleep(100);
+		log.info("Got response from service2 [{}]", response);
+		return response;
+	}
+
+	@RequestMapping("/readtimeout")
+	public String timeout() throws InterruptedException {
+		log.info("Hello from service1. Calling service2 - should end up with read timeout");
+		String response = restTemplate.getForObject("http://" + serviceAddress + "/readtimeout", String.class);
+		log.info("Got response from service2 [{}]", response);
+		return response;
+	}
+
+	@RequestMapping("/connectiontimeout")
+	public String connectiontimeout() throws InterruptedException {
+		log.info("Hello from service1. Calling service2 - should end up with connection timeout");
+		String response = restTemplate.getForObject("http://" + serviceAddress + "/connectiontimeout", String.class);
 		log.info("Got response from service2 [{}]", response);
 		return response;
 	}

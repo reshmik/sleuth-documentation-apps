@@ -1,13 +1,13 @@
 package io.spring.cloud.sleuth.docs.service3;
 
+import java.lang.invoke.MethodHandles;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.lang.invoke.MethodHandles;
 
 @SpringBootApplication
 @RestController
@@ -20,6 +20,13 @@ public class Application {
 		Thread.sleep(300);
 		log.info("Hello from service3");
 		return "Hello from service3";
+	}
+
+	@RequestMapping("/readtimeout")
+	public String readtimeout() throws InterruptedException {
+		Thread.sleep(6000);
+		log.info("Timed out hello from service3");
+		return "Timed out hello from service3";
 	}
 
 	public static void main(String... args) {

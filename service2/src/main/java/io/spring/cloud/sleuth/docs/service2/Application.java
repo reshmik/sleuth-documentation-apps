@@ -1,5 +1,7 @@
 package io.spring.cloud.sleuth.docs.service2;
 
+import java.lang.invoke.MethodHandles;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,11 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-
-import java.lang.invoke.MethodHandles;
 
 @SpringBootApplication
 @RestController
@@ -34,9 +35,26 @@ public class Application {
 		return String.format("Hello from service2, response from service3 [%s] and from service4 [%s]", service3, service4);
 	}
 
+	@RequestMapping("/readtimeout")
+	public String readTimeout() throws InterruptedException {
+		log.info("Calling a missing service");
+		restTemplate.getForObject("http://" + serviceAddress3 + "/readtimeout", String.class);
+		return "Should blow up";
+	}
+
+	@RequestMapping("/connectiontimeout")
+	public String connectionTimeout() throws InterruptedException {
+		log.info("Calling a missing service");
+		restTemplate.getForObject("http://" + serviceAddress3 + "/readtimeout", String.class);
+		return "Should blow up";
+	}
+
 	@Bean
 	RestTemplate restTemplate() {
-		return new RestTemplate();
+		SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+		clientHttpRequestFactory.setConnectTimeout(5000);
+		clientHttpRequestFactory.setReadTimeout(5000);
+		return new RestTemplate(clientHttpRequestFactory);
 	}
 
 	public static void main(String... args) {
