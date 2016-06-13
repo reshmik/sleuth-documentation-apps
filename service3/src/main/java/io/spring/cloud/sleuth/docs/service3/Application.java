@@ -22,13 +22,6 @@ public class Application {
 		return "Hello from service3";
 	}
 
-	@RequestMapping("/readtimeout")
-	public String readtimeout() throws InterruptedException {
-		Thread.sleep(6000);
-		log.info("Timed out hello from service3");
-		return "Timed out hello from service3";
-	}
-
 	public static void main(String... args) {
 		new SpringApplication(Application.class).run(args);
 	}

@@ -1,6 +1,11 @@
 package io.spring.cloud.sleuth.docs.service2;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.lang.invoke.MethodHandles;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
 @SpringBootApplication
 @RestController
 public class Application {
@@ -23,6 +32,22 @@ public class Application {
 	@Autowired RestTemplate restTemplate;
 	@Value("${service3.address:localhost:8083}") String serviceAddress3;
 	@Value("${service4.address:localhost:8084}") String serviceAddress4;
+	private static final int MOCK_PORT = 8765;
+
+	WireMock wireMock = new WireMock(MOCK_PORT);
+	WireMockServer wireMockServer = new WireMockServer(MOCK_PORT);
+
+	@PostConstruct
+	public void setup() {
+		wireMockServer.start();
+		wireMock.register(any(urlMatching(".*")).willReturn(aResponse().withFixedDelay(3000)));
+	}
+
+	@PreDestroy
+	public void shutdown() {
+		wireMock.shutdown();
+		wireMockServer.shutdown();
+	}
 
 	@RequestMapping("/foo")
 	public String start() throws InterruptedException {
@@ -36,24 +61,17 @@ public class Application {
 	}
 
 	@RequestMapping("/readtimeout")
-	public String readTimeout() throws InterruptedException {
-		log.info("Calling a missing service");
-		restTemplate.getForObject("http://" + serviceAddress3 + "/readtimeout", String.class);
-		return "Should blow up";
-	}
-
-	@RequestMapping("/connectiontimeout")
 	public String connectionTimeout() throws InterruptedException {
 		log.info("Calling a missing service");
-		restTemplate.getForObject("http://" + serviceAddress3 + "/readtimeout", String.class);
+		restTemplate.getForObject("http://localhost:" + MOCK_PORT + "/readtimeout", String.class);
 		return "Should blow up";
 	}
 
 	@Bean
 	RestTemplate restTemplate() {
 		SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-		clientHttpRequestFactory.setConnectTimeout(5000);
-		clientHttpRequestFactory.setReadTimeout(5000);
+		clientHttpRequestFactory.setConnectTimeout(2000);
+		clientHttpRequestFactory.setReadTimeout(3000);
 		return new RestTemplate(clientHttpRequestFactory);
 	}
 

@@ -40,14 +40,6 @@ public class Application {
 		return response;
 	}
 
-	@RequestMapping("/connectiontimeout")
-	public String connectiontimeout() throws InterruptedException {
-		log.info("Hello from service1. Calling service2 - should end up with connection timeout");
-		String response = restTemplate.getForObject("http://" + serviceAddress + "/connectiontimeout", String.class);
-		log.info("Got response from service2 [{}]", response);
-		return response;
-	}
-
 	@Bean
 	RestTemplate restTemplate() {
 		return new RestTemplate();
