@@ -106,8 +106,10 @@ configure(subprojects - project(':acceptance-tests')) {
 
     dependencies {
         compile "org.springframework.boot:spring-boot-starter-web"
-        compile "org.springframework.cloud:spring-cloud-starter-stream-rabbit"
-        compile "org.springframework.cloud:spring-cloud-sleuth-stream"
+        compile "org.springframework.cloud:spring-cloud-starter-sleuth-zipkin2"
+        compile "org.springframework.amqp:spring-rabbit"
+        //compile "org.springframework.cloud:spring-cloud-starter-stream-rabbit"
+        //compile "org.springframework.cloud:spring-cloud-sleuth-stream"
         compile "org.springframework.boot:spring-boot-starter-actuator"
         compile "org.aspectj:aspectjrt"
         compile "org.springframework.amqp:spring-amqp"
